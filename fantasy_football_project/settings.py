@@ -30,6 +30,16 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 TANK_API_KEY = os.environ.get("TANK_API_KEY")
 TANK_API_ENDPOINT = "tank01-nfl-live-in-game-real-time-statistics-nfl.p.rapidapi.com"
 
+BASE_API_URL = os.environ.get("BASE_API_URL")
+BASE_APP_URL = os.environ.get("BASE_APP_URL")    
+
+# AWS Cognito Settings
+AWS_COGNITO_REGION = os.environ.get("AWS_COGNITO_REGION")
+AWS_COGNITO_USER_POOL_ID = os.environ.get("AWS_COGNITO_USER_POOL_ID")
+AWS_COGNITO_CLIENT_ID = os.environ.get("AWS_COGNITO_CLIENT_ID")
+AWS_COGNITO_CLIENT_SECRET = os.environ.get("AWS_COGNITO_CLIENT_SECRET")
+AWS_COGNITO_DOMAIN = os.environ.get("AWS_COGNITO_DOMAIN") 
+
 DEBUG = False
 
 ALLOWED_HOSTS = []
@@ -147,7 +157,17 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTHENTICATION_BACKENDS = ['fantasy_football_app.views.CaseInsensitiveModelBackend']
+AUTHENTICATION_BACKENDS = [
+    'fantasy_football_app.views.CaseInsensitiveModelBackend',
+    'django.contrib.auth.backends.ModelBackend',
+    ]
+
+# REST_FRAMEWORK = {
+#     'DEFAULT_AUTHENTICATION_CLASSES': [
+#         'fantasy_football_app.cognito_auth.CognitoJWTAuthentication',
+#         'rest_framework.authentication.SessionAuthentication',
+#     ],
+# }
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/

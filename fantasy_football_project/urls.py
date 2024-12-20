@@ -20,6 +20,8 @@ from django.urls import path, include, re_path
 from django.contrib.auth import views as auth_views
 from fantasy_football_app.views import (
     index, 
+    CognitoLoginApi,
+    LogoutApi,
     sign_in, 
     register, 
     create_entry, 
@@ -45,24 +47,30 @@ from fantasy_football_app.apis import(
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', index, name='index'),  # This line maps the root path to the index view
-    path('register/', register, name='register'),
-    path('sign_in/', sign_in, name='sign_in'),
-    path('create_entry/', create_entry, name='create_entry'),
-    path('user_home/', user_home, name='user_home'),
-    path('delete_entry/<int:entry_id>/', delete_entry, name='delete_entry'),
-    path('edit_entry/<int:entry_id>/', edit_entry, name='edit_entry'),
-    path('standings/', standings, name='standings'),
-    path('view_entry/<int:entry_id>/', view_entry, name='view_entry'),
-    path('sign_out/', sign_out, name='sign_out'),
-    path('reset_password/', auth_views.PasswordChangeView.as_view(template_name='fantasy_football_app/registration/password_change.html'), name='password_change'),
-    path('password_change/done/', auth_views.PasswordChangeDoneView.as_view(template_name='fantasy_football_app/registration/password_change_done.html'), name='password_change_done'),
-    path('players/', players_view, name='players'),
-    path('rules/', rules, name='rules'),
-    path('player/<int:player_id>/', player_stats_view, name='player_stats'),
-    path('entry_list/', entry_list_view, name='entry_list'),
-    path('load_players_api/', load_players_api_view, name='load_players_api'),
-    path('api/entries/', EntryListCreateAPIView.as_view(), name='entry-list-create'),
-    path('api/entries/<int:pk>/', EntryRetrieveUpdateDestroyAPIView.as_view(), name='entry-detail'),
-    path('api/players/', PlayerListAPIView.as_view(), name='list-player-view'),
+    # URL for handling login redirection and processing the authorization code
+    path('auth/api/login/cognito/', CognitoLoginApi.as_view(), name='cognito-login'),
+
+    # URL for logging out
+    path('auth/api/logout/', LogoutApi.as_view(), name='logout'),
+
+    # path('register/', register, name='register'),
+    # path('sign_in/', sign_in, name='sign_in'),
+    # path('create_entry/', create_entry, name='create_entry'),
+    # path('user_home/', user_home, name='user_home'),
+    # path('delete_entry/<int:entry_id>/', delete_entry, name='delete_entry'),
+    # path('edit_entry/<int:entry_id>/', edit_entry, name='edit_entry'),
+    # path('standings/', standings, name='standings'),
+    # path('view_entry/<int:entry_id>/', view_entry, name='view_entry'),
+    # path('sign_out/', sign_out, name='sign_out'),
+    # path('reset_password/', auth_views.PasswordChangeView.as_view(template_name='fantasy_football_app/registration/password_change.html'), name='password_change'),
+    # path('password_change/done/', auth_views.PasswordChangeDoneView.as_view(template_name='fantasy_football_app/registration/password_change_done.html'), name='password_change_done'),
+    # path('players/', players_view, name='players'),
+    # path('rules/', rules, name='rules'),
+    # path('player/<int:player_id>/', player_stats_view, name='player_stats'),
+    # path('entry_list/', entry_list_view, name='entry_list'),
+    # path('load_players_api/', load_players_api_view, name='load_players_api'),
+    # path('api/entries/', EntryListCreateAPIView.as_view(), name='entry-list-create'),
+    # path('api/entries/<int:pk>/', EntryRetrieveUpdateDestroyAPIView.as_view(), name='entry-detail'),
+    # path('api/players/', PlayerListAPIView.as_view(), name='list-player-view'),
     re_path(r'^.*$', react_view), 
 ]
