@@ -3,10 +3,26 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.contrib.auth.models import AbstractUser
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from .constants import WEEK_CHOICES
 from .model_utils import calculate_weekly_score_for_player
 
+class User(AbstractUser):
+    email = models.EmailField(max_length=255, unique=True, db_index=True)
+    cognito_sub = models.CharField(max_length=255, unique=True, null=True, blank=True)  # Unique identifier from Cognito
+    # cognito_refresh_token = models.CharField(max_length=512, null=True, blank=True)
+
+    def __str__(self):
+        return self.username
+
+    def tokens(self):
+        refresh = RefreshToken.for_user(self)
+        return{
+            'refresh':str(refresh),
+            'access':str(refresh.access_token)
+        }
 
 class Player(models.Model):
     POSITION_CHOICES = [

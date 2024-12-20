@@ -1,4 +1,5 @@
 from django import forms  # Import Django's built-in forms module
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.contrib.auth.backends import ModelBackend
@@ -9,6 +10,19 @@ from django.core.cache import cache
 from django.forms.models import model_to_dict
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.utils.safestring import mark_safe
+from django.http import HttpResponseRedirect
+
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.views import TokenRefreshView
+from authlib.integrations.requests_client import OAuth2Session
+
+import json
+import uuid
 
 from waffle import flag_is_active
 
@@ -28,86 +42,356 @@ from .utils import (
     get_summarized_players, update_and_return
 )
 
+from .jwt import decode_and_verify_token
 
-class RegistrationForm(UserCreationForm):
-    email = forms.EmailField(required=True)
-    first_name = forms.CharField(max_length=30)
-    last_name = forms.CharField(max_length=30)
 
-    class Meta:
-        model = User
-        fields = ("first_name", "last_name", "username", "email", "password1", "password2")
+# class RegistrationForm(UserCreationForm):
+#     email = forms.EmailField(required=True)
+#     first_name = forms.CharField(max_length=30)
+#     last_name = forms.CharField(max_length=30)
 
-    def save(self, commit=True):
-        user = super(RegistrationForm, self).save(commit=False)
-        user.first_name = self.cleaned_data["first_name"]
-        user.last_name = self.cleaned_data["last_name"]
-        user.email = self.cleaned_data["email"]
-        if commit:
+#     class Meta:
+#         model = User
+#         fields = ("first_name", "last_name", "username", "email", "password1", "password2")
+
+#     def save(self, commit=True):
+#         user = super(RegistrationForm, self).save(commit=False)
+#         user.first_name = self.cleaned_data["first_name"]
+#         user.last_name = self.cleaned_data["last_name"]
+#         user.email = self.cleaned_data["email"]
+#         if commit:
+#             user.save()
+#         return user
+
+# def register(request):
+#     if request.method == 'POST':
+#         form = RegistrationForm(request.POST)
+#         if form.is_valid():
+#             user = form.save()  # This will handle the first_name, last_name, email, and password fields
+#             username = form.cleaned_data.get('username').lower()
+#             messages.success(request, f'Account created for {username}!')
+#             login(request, user)  # Log the user in
+#             return redirect('create_entry')
+#     else:
+#         form = RegistrationForm()
+#     return render(request, 'fantasy_football_app/register.html', {'form': form})
+
+# def index(request):
+#     if request.user.is_authenticated:
+#         return redirect('user_home')
+#     return render(request, 'fantasy_football_app/index.html')
+
+
+
+# class CaseInsensitiveModelBackend(ModelBackend):
+#     def authenticate(self, request, username=None, password=None, **kwargs):
+#         UserModel = get_user_model()
+#         try:
+#             user = UserModel.objects.get(username__iexact=username)
+#             if user.check_password(password):
+#                 return user
+#         except UserModel.DoesNotExist:
+#             return None
+
+#     def get_user(self, user_id):
+#         UserModel = get_user_model()
+#         try:
+#             return UserModel.objects.get(pk=user_id)
+#         except UserModel.DoesNotExist:
+#             return None
+
+# class CustomAuthenticationForm(AuthenticationForm):
+#     def clean(self):
+#         cleaned_data = super().clean()
+#         username = cleaned_data.get('username')
+#         if username:
+#             cleaned_data['username'] = username.lower()
+#         return cleaned_data
+
+# def sign_in(request):
+#     if request.method == 'POST':
+#         form = CustomAuthenticationForm(request, data=request.POST)
+#         if form.is_valid():
+#             username = form.cleaned_data.get('username')
+#             password = form.cleaned_data.get('password')
+#             user = authenticate(request, username=username, password=password)
+#             if user is not None:
+#                 login(request, user)
+#                 messages.info(request, f"You are now logged in as {username}.")
+#                 return redirect('user_home')
+#             else:
+#                 messages.error(request,"Invalid username or password.")
+
+#     form = CustomAuthenticationForm()
+#     return render(request = request, template_name = "fantasy_football_app/sign_in.html", context={"form":form})
+
+User = get_user_model()
+
+class CognitoAuthManager:
+    def __init__(self):
+        self.client = OAuth2Session(
+            client_id=settings.AWS_COGNITO['CLIENT_ID'],
+            client_secret=settings.AWS_COGNITO['CLIENT_SECRET'],
+            scope=settings.AWS_COGNITO['SCOPES'],
+        )
+        self.token_url = f"{settings.COGNITO_USER_POOL_URL}oauth2/token"
+        self.userinfo_url = f"{settings.COGNITO_USER_POOL_URL}oauth2/userInfo"
+
+    def get_login_url(self, state):
+        return (
+            f"{settings.COGNITO_USER_POOL_URL}/login"
+            f"?response_type=code"
+            f"&client_id={settings.AWS_COGNITO['CLIENT_ID']}"
+            f"&redirect_uri={settings.AWS_COGNITO['REDIRECT_URI']}"
+            f"&scope={settings.AWS_COGNITO['SCOPES']}"
+            f"&state={state}"
+        )
+
+    def exchange_code_for_tokens(self, code):
+        return self.client.fetch_token(
+            self.token_url,
+            code=code,
+            grant_type="authorization_code",
+            redirect_uri=settings.AWS_COGNITO['REDIRECT_URI']
+        )
+
+    def get_user_info(self):
+        return self.client.get(self.userinfo_url).json()
+
+class LoginView(APIView):
+    def get(self, request):
+        state = str(uuid.uuid4())
+        request.session['oauth_state'] = state
+         
+        # Store the 'next' parameter in session
+        next_url = request.GET.get('next')
+        if next_url:
+            request.session['next_url'] = next_url
+        
+        auth_manager = CognitoAuthManager()
+        login_url = auth_manager.get_login_url(state)
+        return redirect(login_url)
+
+class AuthorizeView(APIView):
+    def get(self, request):
+        code = request.GET.get('code')
+        state = request.GET.get('state')
+        
+        if not code or not state:
+            return Response(
+                {'error': 'Invalid request parameters'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # stored_state = request.session.get('oauth_state')
+        # if state != stored_state:
+        #     return Response(
+        #         {'error': 'Invalid state parameter'},
+        #         status=status.HTTP_400_BAD_REQUEST
+        #     )
+
+        auth_manager = CognitoAuthManager()
+        
+        try:
+            # Get tokens from Cognito
+            cognito_tokens = auth_manager.exchange_code_for_tokens(code)
+            print(f"Cognito Tokens: {cognito_tokens}")
+            # Get user info
+            user_info = auth_manager.get_user_info()
+            
+            print(f"User Info: {user_info}")
+
+            # # Decode and verify the access token
+            # access_token = cognito_tokens.get('access_token')
+            # decoded_token = decode_and_verify_token(access_token)
+
+            # # Log decoded token or use it as needed
+            # print(f"Decoded Token: {decoded_token}")
+
+            # Find or create the user in the database
+            user, created = User.objects.get_or_create(
+                cognito_sub=user_info['sub'], 
+                defaults={
+                'email': user_info.get('email'),
+                'username': user_info.get('username'),
+            })
+
+            print(f"User: {user}")
+            print(f"Created: {created}")
+            # Generate JWT tokens
+            refresh = RefreshToken.for_user(user)
+            tokens = {
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+            }
+            
+            request.session['tokens_json'] = json.dumps(tokens)
+
+            # Store Cognito refresh token in user model or secure storage
+            user.cognito_refresh_token = cognito_tokens.get('refresh_token')
             user.save()
-        return user
 
-def register(request):
-    if request.method == 'POST':
-        form = RegistrationForm(request.POST)
-        if form.is_valid():
-            user = form.save()  # This will handle the first_name, last_name, email, and password fields
-            username = form.cleaned_data.get('username').lower()
-            messages.success(request, f'Account created for {username}!')
-            login(request, user)  # Log the user in
-            return redirect('create_entry')
-    else:
-        form = RegistrationForm()
-    return render(request, 'fantasy_football_app/register.html', {'form': form})
+            # Login user
+            login(request, user)
 
-def index(request):
-    if request.user.is_authenticated:
-        return redirect('user_home')
-    return render(request, 'fantasy_football_app/index.html')
+            resp = {
+                'tokens': tokens,
+                'user': {
+                    'id': user.id,
+                    'email': user.email,
+                    'username': user.username
+                }
+            }
+            print(f"Response: {resp}")
 
+            # Convert tokens to JSON and mark as safe for template rendering
+            tokens_json = mark_safe(json.dumps(tokens))
 
+            print(f"Tokens JSON: {tokens_json}")
+            # Render template with tokens
+            context = {
+                'tokens_json': tokens_json
+            }
+            print(f"Context: {context}")
+      
+            # Check for stored next_url in session
+            next_url = request.session.pop('next_url', None)
+            if next_url:
+                return redirect(next_url)
+                
+            # return render(request, 'auth_test.html', context=context)
+            return redirect('/auth-test/')
 
-class CaseInsensitiveModelBackend(ModelBackend):
-    def authenticate(self, request, username=None, password=None, **kwargs):
-        UserModel = get_user_model()
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        print("LogoutView Post Method")
+        print(f"Request: {request}")
         try:
-            user = UserModel.objects.get(username__iexact=username)
-            if user.check_password(password):
-                return user
-        except UserModel.DoesNotExist:
-            return None
 
-    def get_user(self, user_id):
-        UserModel = get_user_model()
-        try:
-            return UserModel.objects.get(pk=user_id)
-        except UserModel.DoesNotExist:
-            return None
+            refresh_token = request.data.get('refresh')
+            token = RefreshToken(refresh_token)
+            print(f"Refresh Token: {refresh_token}")
+            print(f"Token: {token}")
+            token.blacklist()
+            
+            # Clear session
+            request.session.flush()
+            logout(request) 
 
-class CustomAuthenticationForm(AuthenticationForm):
-    def clean(self):
-        cleaned_data = super().clean()
-        username = cleaned_data.get('username')
-        if username:
-            cleaned_data['username'] = username.lower()
-        return cleaned_data
+            # redirect to home/ page
+            return redirect('/home/')
+            # return Response(
+            #     {"message": "Logout successful."},
+            #     status=status.HTTP_200_OK,
+            # )
+            # return HttpResponseRedirect('/')  # Redirecting to the home page
 
-def sign_in(request):
-    if request.method == 'POST':
-        form = CustomAuthenticationForm(request, data=request.POST)
-        if form.is_valid():
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
-            user = authenticate(request, username=username, password=password)
-            if user is not None:
-                login(request, user)
-                messages.info(request, f"You are now logged in as {username}.")
-                return redirect('user_home')
-            else:
-                messages.error(request,"Invalid username or password.")
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-    form = CustomAuthenticationForm()
-    return render(request = request, template_name = "fantasy_football_app/sign_in.html", context={"form":form})
+# New Protected Views
+class ProtectedResourceView(APIView):
+    permission_classes = [IsAuthenticated]  # This makes the route protected
+    def get(self, request):
+        """
+        Example protected endpoint that returns user data
+        """
+
+        return Response({
+            'user_id': request.user.id,
+            'email': request.user.email,
+            'username': request.user.username,
+            'message': 'You have access to this protected resource!'
+        })
+    
+    def post(self, request):
+        """
+        Example protected endpoint that processes data
+        """
+        data = request.data
+        # Process the data here...
+        return Response({
+            'message': 'Data processed successfully',
+            'received_data': data
+        })
+
+# Example of another protected view with custom logic
+class UserProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+    print(f"UserProfileView Perrmission Classes: {permission_classes}")
+
+    def get(self, request):
+        """
+        Retrieve user profile data
+        """
+        user = request.user
+
+        print(f"User: {user}")
+        print(f"Request: {request}")
+
+        profile_data = {
+            'id': user.id,
+            'email': user.email,
+            'username': user.username,
+            # Add any other user fields you want to expose
+        }
+        return Response(profile_data)
+    
+    def put(self, request):
+        """
+        Update user profile data
+        """
+        user = request.user
+        # Example of updating username
+        new_username = request.data.get('username')
+        if new_username:
+            user.username = new_username
+            user.save()
+            return Response({'message': 'Profile updated successfully'})
+        return Response(
+            {'error': 'No data provided'}, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+def auth_test_view(request):
+    print(f"Auth_Test_View\nRequest: {request}")
+
+    tokens_json = request.session.pop('tokens_json', None)  # Retrieve and remove from session
+    
+    print(f"Auth_Test_View Tokens JSON: {tokens_json}")
+    print(f"Is Authenticated: {request.user.is_authenticated}")
+    if not tokens_json:
+        return redirect('/authorize/')  # Redirect if tokens are missing
+    
+    context = {
+        'tokens_json': tokens_json
+    }
+    print(f"Auth_Test_View Context:\n > '{context}'")
+
+    return render(request, 'fantasy_football_app/auth_test.html', context=context)
+
+def home_test_view(request):
+    print(f"Start test view\nRequest: {request}")
+
+    return render(request, 'fantasy_football_app/home.html')
+
+# def user_home(request):
+#     print(f"Index View\nRequest: {request}")
+#     print(f"Is Authenticated: {request.user.is_authenticated}")
+#     if request.user.is_authenticated:
+#         return redirect('/auth-test/')
+#     return render(request, 'user_home.html')
 
 
 @login_required
@@ -208,9 +492,9 @@ def view_entry(request, entry_id):
     }
     return render(request, 'fantasy_football_app/view_entry.html', context) 
 
-def sign_out(request):
-    logout(request)
-    return redirect('index')
+# def sign_out(request):
+#     logout(request)
+#     return redirect('index')
 
 
 def players_view(request):

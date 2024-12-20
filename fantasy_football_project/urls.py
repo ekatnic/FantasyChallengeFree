@@ -19,23 +19,32 @@ from django.contrib import admin
 from django.urls import path, include, re_path
 from django.contrib.auth import views as auth_views
 from fantasy_football_app.views import (
-    index, 
-    sign_in, 
-    register, 
+    # index, 
+    # sign_in, 
+    # register, 
     create_entry, 
     user_home, 
     delete_entry, 
     edit_entry, 
     standings, 
     view_entry,
-    sign_out,
+    # sign_out,
     players_view,
     rules,
     player_stats_view,
     entry_list_view,
     load_players_api_view,
     react_view,
+    home_test_view,
+    auth_test_view,
+    LoginView,
+    AuthorizeView,
+    LogoutView,
+    TokenRefreshView,
+    ProtectedResourceView,
+    UserProfileView,
 )
+
 from fantasy_football_app.apis import(
     EntryListCreateAPIView,
     EntryRetrieveUpdateDestroyAPIView,
@@ -44,18 +53,30 @@ from fantasy_football_app.apis import(
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', index, name='index'),  # This line maps the root path to the index view
-    path('register/', register, name='register'),
-    path('sign_in/', sign_in, name='sign_in'),
+    # path('', index, name='index'),  # This line maps the root path to the index view
+    
+    path('home/', home_test_view, name='home'),
+    # path('user_home/', index, name='user_home'),
+    # path('home/', TemplateView.as_view(template_name='home.html'), name='start'),
+    path('login/', LoginView.as_view(), name='login'),
+    path('authorize/', AuthorizeView.as_view(), name='authorize'),
+    path('auth-test/', auth_test_view, name='auth_test'), 
+    path('logout/', LogoutView.as_view(), name='logout'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('protected-resource/', ProtectedResourceView.as_view(), name='protected-resource'),
+    path('profile/', UserProfileView.as_view(), name='user-profile'),
+
+    # path('register/', register, name='register'),
+    # path('sign_in/', sign_in, name='sign_in'),
     path('create_entry/', create_entry, name='create_entry'),
     path('user_home/', user_home, name='user_home'),
     path('delete_entry/<int:entry_id>/', delete_entry, name='delete_entry'),
     path('edit_entry/<int:entry_id>/', edit_entry, name='edit_entry'),
     path('standings/', standings, name='standings'),
     path('view_entry/<int:entry_id>/', view_entry, name='view_entry'),
-    path('sign_out/', sign_out, name='sign_out'),
-    path('reset_password/', auth_views.PasswordChangeView.as_view(template_name='fantasy_football_app/registration/password_change.html'), name='password_change'),
-    path('password_change/done/', auth_views.PasswordChangeDoneView.as_view(template_name='fantasy_football_app/registration/password_change_done.html'), name='password_change_done'),
+    # path('sign_out/', sign_out, name='sign_out'),
+    # path('reset_password/', auth_views.PasswordChangeView.as_view(template_name='fantasy_football_app/registration/password_change.html'), name='password_change'),
+    # path('password_change/done/', auth_views.PasswordChangeDoneView.as_view(template_name='fantasy_football_app/registration/password_change_done.html'), name='password_change_done'),
     path('players/', players_view, name='players'),
     path('rules/', rules, name='rules'),
     path('player/<int:player_id>/', player_stats_view, name='player_stats'),

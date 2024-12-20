@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Auth Test Page</title>
+    <style>
+      .result {
+        padding: 10px;
+        margin: 10px 0;
+        border: 1px solid #ccc;
+        background: #f9f9f9;
+      }
+      button {
+        margin: 5px;
+        padding: 8px 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Authentication Test Page</h1>
+
+    <div id="tokens-display">
+      <h3>Your Tokens:</h3>
+      <pre id="tokens-info"></pre>
+    </div>
+
+    <h3>Test Protected Routes:</h3>
+    <button onclick="testProfile()">Test Profile Endpoint</button>
+    <button onclick="testProtectedResource()">Test Protected Resource</button>
+    <button onclick="signOut()">Sign Out</button>
+
+    <div id="result" class="result">Results will appear here...</div>
+
+    <script>
+          // Safely access the tokens data from the context
+          const tokens = {{ tokens_json|safe }};
+      console.log('Tokens:', tokens);
+        // Store tokens when they arrive
+        function initializeTokens(tokens) {
+          localStorage.setItem("access_token", tokens.access);
+          localStorage.setItem("refresh_token", tokens.refresh);
+          displayTokens();
+        }
+
+        // Display stored tokens
+        function displayTokens() {
+          const access = localStorage.getItem("access_token");
+          const refresh = localStorage.getItem("refresh_token");
+          document.getElementById("tokens-info").textContent =
+            `Access Token: ${access ? `${access.substr(0, 20)}...` : "None"}\n` +
+            `Refresh Token: ${refresh ? `${refresh.substr(0, 20)}...` : "None"}`;
+        }
+
+        // Test profile endpoint
+        async function testProfile() {
+          const result = document.getElementById("result");
+          const token = localStorage.getItem("access_token");
+
+          try {
+            const response = await fetch("/profile/", {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
+            const data = await response.json();
+            result.textContent = JSON.stringify(data, null, 2);
+          } catch (error) {
+            result.textContent = `Error: ${error.message}`;
+          }
+        }
+
+        // Test protected resource endpoint
+        async function testProtectedResource() {
+          const result = document.getElementById("result");
+          const token = localStorage.getItem("access_token");
+
+          try {
+            const response = await fetch("/protected-resource/", {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
+            const data = await response.json();
+            result.textContent = JSON.stringify(data, null, 2);
+          } catch (error) {
+            result.textContent = `Error: ${error.message}`;
+          }
+        }
+
+         // Sign out function
+         async function signOut() {
+            const refreshToken = localStorage.getItem("refresh_token");
+            const accessToken = localStorage.getItem("access_token");
+
+            try {
+                const response = await fetch("/logout/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${accessToken}`, // Include the access token
+                },
+                body: JSON.stringify({ refresh: refreshToken }),
+                });
+
+
+          if (response.ok) {
+            // Clear local storage after successful logout
+            localStorage.clear();
+             // Redirect to the home page
+            window.location.href = "/home/"; // Update this path if your home page route is different
+          } else {
+            console.log("response: ", response)
+            const errorData = await response.json();
+            console.log("error data: ", errorData)
+            const errorMessage = errorData.error || "An unknown error occurred.";
+            alert(`Error: ${errorMessage}`);
+          }
+        } catch (error) {
+          alert(`Error: ${error.message}`);
+        }
+      }
+
+
+        console.log("Setting tokens into local storage...")
+        initializeTokens(tokens);
+        // Initialize page
+        displayTokens();
+    </script>
+  </body>
+</html>

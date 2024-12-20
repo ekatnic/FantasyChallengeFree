@@ -15,6 +15,8 @@ import django_heroku
 import os
 import dj_database_url
 import mimetypes
+import datetime
+from datetime import timedelta
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -52,6 +54,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'bootstrap5',
+    # 'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist', #<----
 ]
 
 MIDDLEWARE = [
@@ -91,7 +95,9 @@ WSGI_APPLICATION = 'fantasy_football_project.wsgi.application'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 IS_HEROKU_APP = "DYNO" in os.environ and not "CI" in os.environ
-LOGIN_URL = '/sign_in/'
+
+LOGIN_URL = '/login/'  # Points to your LoginView URL
+# LOGIN_URL = '/sign_in/'
 
 if IS_HEROKU_APP:
     # In production on Heroku the database configuration is derived from the `DATABASE_URL`
@@ -147,7 +153,10 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTHENTICATION_BACKENDS = ['fantasy_football_app.views.CaseInsensitiveModelBackend']
+AUTHENTICATION_BACKENDS = [
+    # 'fantasy_football_app.views.CaseInsensitiveModelBackend'
+                        'django.contrib.auth.backends.ModelBackend',
+                           ]
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
@@ -187,6 +196,8 @@ CACHES = {
 DATABASES['default']['CONN_MAX_AGE'] = 0
 
 CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8000",
+    "http://localhost:3000",
     'https://fantasy-challenge-2024-59233a8817fc.herokuapp.com',
     'http://playoff-showdown.com',
     'https://playoff-showdown.com',
@@ -206,3 +217,54 @@ LOGGING = {
         'level': 'INFO',
     },
 }
+
+# ----------- COGNITO AUTH ------------------
+
+AUTH_USER_MODEL = 'fantasy_football_app.User'
+
+# Cognito Settings (replace with your actual Cognito configuration)
+COGNITO_USER_POOL_ID = os.environ.get('COGNITO_USER_POOL_ID')
+COGNITO_REGION = os.environ.get('COGNITO_REGION')
+COGNITO_CLIENT_ID = os.environ.get('COGNITO_CLIENT_ID')
+# COGNITO_USER_POOL_URL = f'https://cognito-idp.{COGNITO_REGION}.amazonaws.com/{COGNITO_USER_POOL_ID}'
+COGNITO_USER_POOL_URL = f"https://playoff-showdown.auth.us-east-1.amazoncognito.com/"
+# NOTE: same as COGNITO_CLIENT_ID for user pool
+COGNITO_USER_LOGIN_CLIENT_ID = os.environ.get('COGNITO_USER_LOGIN_CLIENT_ID')
+
+# TODO: Move these to environment variables
+AWS_COGNITO = {
+    'AUTHORITY': 'https://cognito-idp.us-east-1.amazonaws.com/us-east-1_INESI256k',
+    'CLIENT_ID': '6me1ss5grcq9f1nta9lvjb5ijn',
+    'CLIENT_SECRET': 'npv0bmr7sp9mtlv15iva8spknvfhtvtnnfm700c4ol5sca8sg5n',
+    'REDIRECT_URI': 'http://localhost:8000/authorize/',
+    # 'SCOPES': 'email openid profile',
+    'SCOPES': 'aws.cognito.signin.user.admin email openid profile',
+}
+# Use the Django session engine (default)
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+}
+
+CORS_ORIGIN_ALLOW_ALL =  True
+COMPUTEDFIELDS_ADMIN = True
+
+# -----------------------------------------------------------------------------
+
+###############################
+# Custom settings: Auth0
+
+OAUTH2_DOMAIN = os.environ.get('OAUTH2_DOMAIN')
+OAUTH2_TENANT_OPENID_CONFIGURATION = f"https://{OAUTH2_DOMAIN}/.well-known/openid-configuration"
+OAUTH2_TENANT_JWKS = f"https://{OAUTH2_DOMAIN}/.well-known/jwks.json"
+
+OAUTH2_AUDIENCE = os.environ.get("COGNITO_CLIENT_ID")
+OAUTH2_KEY = os.environ.get("OAUTH2_KEY")
+OAUTH2_SECRET = os.environ.get("OAUTH2_SECRET")
