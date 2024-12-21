@@ -1,12 +1,12 @@
 from computedfields.models import ComputedFieldsModel, compute, computed
 from django.contrib.auth.models import User
 from django.db import models
+from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from .constants import WEEK_CHOICES
 from .model_utils import calculate_weekly_score_for_player
-
 
 class Player(models.Model):
     POSITION_CHOICES = [
@@ -28,6 +28,7 @@ class Player(models.Model):
 
 class Entry(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    # user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     players = models.ManyToManyField(Player, through='RosteredPlayers')
     name = models.CharField(max_length=200, blank=True)
     wild_card_score = models.FloatField(default=0.0)

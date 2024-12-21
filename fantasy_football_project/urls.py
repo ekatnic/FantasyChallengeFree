@@ -18,10 +18,26 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include, re_path
 from django.contrib.auth import views as auth_views
+
 from fantasy_football_app.views import (
     index, 
-    sign_in, 
-    register, 
+
+    signup_view,
+    login_view,
+
+    SignupView,
+    LoginView,
+    LogoutView,
+    AuthStatusView,
+    ForgotPasswordView,
+    ConfirmForgotPasswordView,
+    ChangePasswordView,
+
+    # signup, 
+    # confirm_signup,
+    # login, 
+    # logout,
+
     create_entry, 
     user_home, 
     delete_entry, 
@@ -35,6 +51,7 @@ from fantasy_football_app.views import (
     entry_list_view,
     load_players_api_view,
     react_view,
+
 )
 from fantasy_football_app.apis import(
     EntryListCreateAPIView,
@@ -45,8 +62,28 @@ from fantasy_football_app.apis import(
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', index, name='index'),  # This line maps the root path to the index view
-    path('register/', register, name='register'),
-    path('sign_in/', sign_in, name='sign_in'),
+    path('api/signup/', SignupView.as_view(), name='signup'),
+    path('api/login/', LoginView.as_view(), name='login'),
+    path('api/logout/', LogoutView.as_view(), name='logout'),
+    path('api/forgot-password/', ForgotPasswordView.as_view(), name='forgot_password'),
+    path('api/confirm-forgot-password/', ConfirmForgotPasswordView.as_view(), name='confirm_forgot_password'),
+    path('api/change-password/', ChangePasswordView.as_view(), name='change_password'),
+    path('api/auth-status/', AuthStatusView.as_view(), name='auth_status'),
+    
+    # path('login/', login_view, name='login'),
+    # path('signup/', signup_view, name='signup'),
+    # path('confirm_signup/', confirm_signup_view, name='confirm_signup'),
+    # path('change_password/', change_password_view, name='change_password'),
+    # path('refresh_token/', refresh_token_view, name='refresh_token'),
+
+    # path('signup_view/', signup_view, name = 'signup_view'),
+    # path('login_view/', login_view, name = "login_view"),
+
+    # path('signup/', signup, name='signup'),
+    # path('confirm_signup/<str:email>/', confirm_signup, name='confirm_signup'),
+    # path('login/', login, name='login'),
+    # path('logout/', logout, name='logout'),
+
     path('create_entry/', create_entry, name='create_entry'),
     path('user_home/', user_home, name='user_home'),
     path('delete_entry/<int:entry_id>/', delete_entry, name='delete_entry'),

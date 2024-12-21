@@ -2,5 +2,5 @@
 from django.urls import include, path
 
 urlpatterns = [
-    path('register/', include('fantasy_football_app.urls.register')),
+    path('signup/', include('fantasy_football_app.urls.signup')),
 ]

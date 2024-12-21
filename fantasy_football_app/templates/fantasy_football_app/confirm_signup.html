@@ -1,0 +1,12 @@
+<h2>Confirm Registration</h2>
+<p>
+  Please enter the confirmation code sent to your email for the email: {{ email
+  }}
+</p>
+
+<form method="POST">
+  {% csrf_token %}
+  <label for="confirmation_code">Confirmation Code:</label>
+  <input type="text" id="confirmation_code" name="confirmation_code" required />
+  <button type="submit">Confirm</button>
+</form>
