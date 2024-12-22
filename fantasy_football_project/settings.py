@@ -45,6 +45,12 @@ COOKIE_SECURE = not DEBUG  # True in production, False in development
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 
+CORS_ALLOW_CREDENTIALS = True
+# CSRF_COOKIE_SAMESITE = 'Strict'
+# SESSION_COOKIE_SAMESITE = 'Strict'
+# CSRF_COOKIE_HTTPONLY = False  # False since we will grab it via universal-cookies
+SESSION_COOKIE_HTTPONLY = True
+
 ALLOWED_HOSTS = []
 
 # Application definition
@@ -219,7 +225,6 @@ CSRF_TRUSTED_ORIGINS = [
     'http://playoff-showdown.com',
     'https://playoff-showdown.com',
 ]
-CORS_ALLOW_CREDENTIALS = True
 
 COMPUTEDFIELDS_ADMIN = True
 LOGGING = {

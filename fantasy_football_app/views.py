@@ -251,6 +251,8 @@ from rest_framework.views import APIView
 from django.contrib.auth import login, logout, authenticate
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth import update_session_auth_hash
+from django.views.decorators.csrf import ensure_csrf_cookie
+from django.utils.decorators import method_decorator
 
 from .serializers import (
     UserSerializer, 
@@ -261,6 +263,7 @@ from .serializers import (
     ChangePasswordSerializer
     )
 
+@method_decorator(ensure_csrf_cookie, name = "post")
 class SignupView(generics.CreateAPIView):
     serializer_class = SignupSerializer
     permission_classes = [AllowAny]
@@ -306,7 +309,7 @@ class SignupView(generics.CreateAPIView):
             'errors': serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
 
-
+@method_decorator(ensure_csrf_cookie, name = "post")
 class LoginView(APIView):
     permission_classes = [AllowAny]
     serializer_class = LoginSerializer
@@ -317,13 +320,14 @@ class LoginView(APIView):
             username = serializer.validated_data['username']
             password = serializer.validated_data['password']
             
+            print(f"Authing {username} w/ pass: {password}")
             user = authenticate(request, username=username, password=password)
             
             if user:
                 try:
                     # Authenticate with Cognito
                     response = cognito_service.start_sign_in(username, password)
-                    
+                    print(f"Response from cognito: {response}")
                     if response.get("ChallengeName") == "NEW_PASSWORD_REQUIRED":
                         return Response({
                             'success': False,
@@ -354,7 +358,7 @@ class LoginView(APIView):
             'errors': serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
 
-
+@method_decorator(ensure_csrf_cookie, name = "post")
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -508,7 +512,7 @@ class ChangePasswordView(APIView):
             'errors': serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
 
-
+# @ensure_csrf_cookie
 class AuthStatusView(APIView):
     permission_classes = [AllowAny]
 

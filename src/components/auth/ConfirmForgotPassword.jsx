@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   TextField,
   Button,
@@ -8,16 +8,15 @@ import {
   Container,
   Alert,
 } from "@mui/material";
-import { signup } from "../../services/auth";
+import { confirmForgotPassword } from "../../services/auth";
 
-export function SignupForm() {
+export function ConfirmForgotPassowrd() {
+  const location = useLocation();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    email: "",
-    password1: "",
-    password2: "",
-    first_name: "",
-    last_name: "",
+    email: location.state?.email || "",
+    confirmation_code: "",
+    password: "",
   });
   const [error, setError] = useState("");
 
@@ -26,12 +25,15 @@ export function SignupForm() {
     setError("");
 
     try {
-      await signup(formData);
+      await confirmForgotPassword(formData);
       navigate("/login", {
-        state: { message: "Account created successfully! Please log in." },
+        state: {
+          message:
+            "Password reset successful! Please log in with your new password.",
+        },
       });
     } catch (err) {
-      setError(err.response?.data?.errors || "An error occurred during signup");
+      setError(err.response?.data?.errors || "An error occurred");
     }
   };
 
@@ -46,7 +48,7 @@ export function SignupForm() {
         }}
       >
         <Typography component="h1" variant="h5">
-          Sign Up
+          Reset Password
         </Typography>
         {error && (
           <Alert severity="error" sx={{ width: "100%", mt: 2 }}>
@@ -58,32 +60,8 @@ export function SignupForm() {
             margin="normal"
             required
             fullWidth
-            label="First Name"
-            name="first_name"
-            autoFocus
-            value={formData.first_name}
-            onChange={(e) =>
-              setFormData({ ...formData, first_name: e.target.value })
-            }
-          />
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            label="Last Name"
-            name="last_name"
-            value={formData.last_name}
-            onChange={(e) =>
-              setFormData({ ...formData, last_name: e.target.value })
-            }
-          />
-          <TextField
-            margin="normal"
-            required
-            fullWidth
             label="Email Address"
             name="email"
-            type="email"
             value={formData.email}
             onChange={(e) =>
               setFormData({ ...formData, email: e.target.value })
@@ -93,24 +71,23 @@ export function SignupForm() {
             margin="normal"
             required
             fullWidth
-            label="Password"
-            name="password1"
-            type="password"
-            value={formData.password1}
+            label="Confirmation Code"
+            name="confirmation_code"
+            value={formData.confirmation_code}
             onChange={(e) =>
-              setFormData({ ...formData, password1: e.target.value })
+              setFormData({ ...formData, confirmation_code: e.target.value })
             }
           />
           <TextField
             margin="normal"
             required
             fullWidth
-            label="Confirm Password"
-            name="password2"
+            label="New Password"
+            name="password"
             type="password"
-            value={formData.password2}
+            value={formData.password}
             onChange={(e) =>
-              setFormData({ ...formData, password2: e.target.value })
+              setFormData({ ...formData, password: e.target.value })
             }
           />
           <Button
@@ -119,7 +96,7 @@ export function SignupForm() {
             variant="contained"
             sx={{ mt: 3, mb: 2 }}
           >
-            Sign Up
+            Reset Password
           </Button>
         </Box>
       </Box>
