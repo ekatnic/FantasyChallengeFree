@@ -15,12 +15,12 @@ class Player(models.Model):
         ('WR', 'Wide Receiver'),
         ('TE', 'Tight End'),
         ('DEF', 'Defense/Special Teams'),
+        ('K', 'Kicker')
     ]
 
     name = models.CharField(max_length=100)
     position = models.CharField(max_length=12, choices=POSITION_CHOICES)
     team = models.CharField(max_length=50)
-    #rostered_percentage = models.FloatField(default=0.0) 
 
     def __str__(self):
         return f'{self.name} ({self.position}) - {self.team}'
@@ -38,12 +38,14 @@ class PlayerInfo(models.Model):
 
 class PlayerStats(models.Model):
     SEASON_TYPE_CHOICES = [
-        ('regular_season', 'Regular Season'),
-        ('pre_season', 'Pre-Season'),
-        ('post_season', 'Post-Season'),
+    ('regular_season', 'Regular Season'),
+    ('pre_season', 'Pre-Season'),
+    ('post_season', 'Post-Season'),
     ]
+
     player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='stats')
     season = models.IntegerField()
+    # season_type = models.CharField(max_length=50, null=True, blank=True)
     season_type = models.CharField(
         max_length=50,
         choices=SEASON_TYPE_CHOICES,

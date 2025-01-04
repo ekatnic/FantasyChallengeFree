@@ -12,8 +12,8 @@ import ConfirmSignupForm from "./components/auth/ConfirmSignupForm";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import Home from "./components/Home";
 import ProtectedHome from "./components/ProtectedHome";
-// import Standings from "./components/Standings";
-// import Players from "./components/Players";
+import Standings from "./components/Standings";
+import PlayerOwnership from "./components/PlayerOwnership";
 import Rules from "./components/Rules";
 import EntryList from "./components/EntryList";
 import CreateEntry from "./components/CreateEntry";
@@ -43,8 +43,8 @@ const App = () => {
             <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<ProtectedHome />} />
               <Route path="/my-entries" element={<MyEntries />} /> 
-              {/* <Route path="/standings" element={<Standings />} />
-              <Route path="/players" element={<Players />} /> */}
+              <Route path="/standings" element={<Standings />} />
+              <Route path="/players" element={<PlayerOwnership />} />
               <Route path="/create-entry" element={<CreateEntry />} />
               <Route path="/edit-entry/:id" element={<EditEntry />} />
               <Route path="/view-entry/:id" element={<ViewEntry />} />
