@@ -68,7 +68,7 @@ class PlayerStats(models.Model):
     pass_completions = models.IntegerField(default=0)
     passing_yards_avg = models.FloatField(default=0.0)
     qbr = models.FloatField(default=0.0)
-    sacked = models.IntegerField(default=0)
+    # sacked = models.IntegerField(default=0)
     rating = models.FloatField(default=0.0)
     fumbles = models.IntegerField(default=0)
     fumbles_lost = models.IntegerField(default=0)
