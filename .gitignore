@@ -213,3 +213,4 @@ data/All_Players_Test.csv
 data/
 data/*
 src/components/auth/CheckAuthButton.jsx
+myenv/*

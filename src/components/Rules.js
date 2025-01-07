@@ -25,13 +25,6 @@ export default function Rules() {
     { position: "Last Place*", amount: "$20" },
   ];
 
-  const pricing = [
-    { entries: "1 entry", price: "$20" },
-    { entries: "3 entries", price: "$55" },
-    { entries: "5 entries", price: "$90" },
-    { entries: "10 entries", price: "$175" },
-  ];
-
   // Full rules stored in a variable as an array of objects
   const fullRules = [
     {
@@ -147,69 +140,6 @@ export default function Rules() {
               <br />
             </Box>
           ))}
-        </Paper>
-
-        {/* Pricing */}
-        <Paper
-          elevation={3}
-          sx={{
-            padding: 2,
-            flex: "1 1 calc(33% - 16px)",
-            minWidth: "280px",
-          }}
-        >
-          <Typography variant="h5" align="center" gutterBottom>
-            <strong>Entry Pricing:</strong>
-          </Typography>
-          <Typography variant="body2" sx={{ mt: 2 }}>
-            Max of 10 entries
-          </Typography>
-          <TableContainer component={Paper}>
-            <Table>
-              <TableBody>
-                {pricing.map((price, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{price.entries}</TableCell>
-                    <TableCell align="right">{price.price}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-
-          <br/>
-          <br/>
-          <Typography variant="h5" align="center" gutterBottom>
-            <strong>Payouts:</strong>
-          </Typography>
-          <Typography gutterBottom>
-            Payouts determined by number of entries. Expected payout will be something like...
-          </Typography>
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>
-                    <strong>Position</strong>
-                  </TableCell>
-                  <TableCell align="right">
-                    <strong>Amount</strong>
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {payouts.map((payout, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{payout.position}</TableCell>
-                    <TableCell align="right">{payout.amount}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <Typography variant="body2" sx={{ mt: 2 }}>
-            Around 1% of the pot will be used to pay web hosting fees.
-          </Typography>
         </Paper>
       </Box>
       <Box sx={{ marginTop: 4 }}>

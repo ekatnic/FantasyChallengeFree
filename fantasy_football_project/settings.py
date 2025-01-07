@@ -117,9 +117,7 @@ if IS_HEROKU_APP:
     }
     DATABASES['default']['ENGINE'] = 'django.db.backends.postgresql_psycopg2'
     CORS_ALLOWED_ORIGINS = [
-        'https://fantasy-challenge-2024-59233a8817fc.herokuapp.com',
-        'http://playoff-showdown.com',
-        'https://playoff-showdown.com',
+        #new origins
     ]
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 else:
@@ -143,9 +141,7 @@ else:
         "http://localhost:3000",
         "http://127.0.0.1:3000",
 
-        'https://fantasy-challenge-2024-59233a8817fc.herokuapp.com',
-        'http://playoff-showdown.com',
-        'https://playoff-showdown.com',
+        #new origins
     ]
     
     # ---------------------------------------------
@@ -165,9 +161,7 @@ else:
         "http://localhost:3000",
         "http://127.0.0.1:3000",
 
-        'https://fantasy-challenge-2024-59233a8817fc.herokuapp.com',
-        'http://playoff-showdown.com',
-        'https://playoff-showdown.com',
+        # new origins
     ]
 
     CSRF_COOKIE_SAMESITE    = None 
