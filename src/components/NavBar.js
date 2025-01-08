@@ -2,7 +2,6 @@ import React from "react";
 import { AppBar, Toolbar, Typography, Button, Box } from "@mui/material";
 import { Link as RouterLink, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import LogoutButton from "./auth/LogoutButton";
 import UserProfile from "./UserProfile";
 
 const BASE_URL = process.env.REACT_APP_API_BASE_URL || "";
@@ -70,7 +69,6 @@ const NavBar = () => {
                 </Button>
               ))}
               <UserProfile email={user?.email} />
-              <LogoutButton />
             </>
           ) : (
             <>
