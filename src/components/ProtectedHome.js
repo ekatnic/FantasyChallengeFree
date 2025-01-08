@@ -14,7 +14,7 @@ export default function ProtectedHome() {
       </Typography>
       <Box sx={{ mt: 3, mb: 3 }}>
         <Typography variant="body1" gutterBottom>
-          Create a lineup of 12 players. Once the playoffs start you will not be able to change your lineup. The catch is that you can only select ONE PLAYER PER TEAM. 
+          Create a lineup of 12 players. Once the playoffs start you will not be able to change your lineup. The catch is that you can only select <strong>ONE PLAYER PER TEAM</strong>. 
         </Typography>
         <Typography variant="body1" gutterBottom>
           <br/>
