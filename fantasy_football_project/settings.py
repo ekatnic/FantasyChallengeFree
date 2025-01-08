@@ -127,7 +127,7 @@ else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': 'fantasy_challenge_db',
+            'NAME': 'fantasy_challenge_free_db',
             'USER': 'postgres',
             'PASSWORD': 'pass',
             'HOST': 'localhost',
