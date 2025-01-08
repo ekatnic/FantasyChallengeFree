@@ -40,7 +40,7 @@ const Home = () => {
             or salary cap! Earn bonus points through the <strong>SCALED FLEX</strong> multiplier and watch your players
             compete in the playoffs.
           </Typography>
-          <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
+          <Typography variant="h6" gutterBottom sx={{ mt: 2, fontWeight: "bold" }}>
             Important Deadlines:
           </Typography>
           <Typography variant="body1" gutterBottom>
