@@ -59,30 +59,10 @@ const Home = () => {
             or salary cap! Earn bonus points through the <strong>SCALED FLEX</strong> multiplier and watch your players
             compete in the playoffs.
           </Typography>
-          <Box
-          sx={{
-            textAlign: "center",
-              mb: 3,
-            
-          }}
-        >
-          <img
-            src="https://raw.githubusercontent.com/ekatnic/FantasyChallenge/master/fantasy_football_app/static/images/venmo.PNG"
-            alt="Venmo QR Code"
-            style={{
-              maxWidth: "100%",
-              height: "auto",
-              borderRadius: 8,
-            }}
-          />
-          <Typography
-            variant="caption"
-            display="block"
-            sx={{ mt: 1, color: "#777" }}
-          >
-            Scan to Venmo @Spenser-Wyatt by kickoff Saturday.
+          <br/>
+          <Typography variant="body1" gutterBottom>
+          This contest is completely free. If you are interested in a paid contest, you can join us at <a href="https://playoff-showdown.com">playoff-showdown.com</a>.
           </Typography>
-        </Box>
           <Typography variant="h6" gutterBottom sx={{ mt: 2, fontWeight: "bold" }}>
             Important Deadlines:
           </Typography>
