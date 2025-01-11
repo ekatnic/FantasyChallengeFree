@@ -1,9 +1,6 @@
 import React from "react";
 import { Typography, Paper, Box, Button,  Link, Card, CardContent } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add"; // Plus icon
-import ListIcon from "@mui/icons-material/List"; // List icon
 import { useNavigate } from "react-router-dom";
-import { Typography, Paper, Box, Button, Card, CardContent, Link } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import ListIcon from "@mui/icons-material/List";
 import { useAuth } from "../contexts/AuthContext";
