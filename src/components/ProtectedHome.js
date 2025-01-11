@@ -33,7 +33,7 @@ export default function ProtectedHome() {
           textAlign: "center",
         }}
       >
-        Welcome to the Playoff Challenge
+        Welcome to the Playoff Challenge [Free]
       </Typography>
       <Box sx={{ mt: 4, display: "flex", justifyContent: "center", gap: 2 }}>
         <Button

@@ -27,7 +27,7 @@ const Home = () => {
           textAlign: "center",
         }}
       >
-        Welcome to the Playoff Challenge
+        Welcome to the Playoff Challenge [Free]
       </Typography>
       <Typography variant="h5" component="h2" gutterBottom>
         Compete, Watch, Win!
