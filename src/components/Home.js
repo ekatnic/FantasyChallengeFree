@@ -11,7 +11,6 @@ const Home = () => {
         p: 4,
         mt: 4,
         mx: "auto",
-        // maxWidth: 800,
         maxWidth: '75%',
         textAlign: "center",
         background: "#f9f9f9",
@@ -28,12 +27,22 @@ const Home = () => {
           textAlign: "center",
         }}
       >
-        Playoff Challenge
+        Welcome to the Playoff Challenge
       </Typography>
       <Typography variant="h5" component="h2" gutterBottom>
         Compete, Watch, Win!
       </Typography>
-
+      <Box sx={{ mt: 4, display: "flex", justifyContent: "center", gap: 2 }}>
+        <Button variant="contained" color="warning" onClick={() => navigate("/rules")}>
+          Rules
+        </Button>
+        <Button variant="contained" sx={{ bgcolor: "dodgerblue" }} onClick={() => navigate("/login")}>
+          Login
+        </Button>
+        <Button variant="contained" sx={{ bgcolor: "green" }} onClick={() => navigate("/signup")}>
+          Sign Up
+        </Button>
+      </Box>
       <Card
         sx={{
           mt: 4,
@@ -50,6 +59,30 @@ const Home = () => {
             or salary cap! Earn bonus points through the <strong>SCALED FLEX</strong> multiplier and watch your players
             compete in the playoffs.
           </Typography>
+          <Box
+          sx={{
+            textAlign: "center",
+              mb: 3,
+            
+          }}
+        >
+          <img
+            src="https://raw.githubusercontent.com/ekatnic/FantasyChallenge/master/fantasy_football_app/static/images/venmo.PNG"
+            alt="Venmo QR Code"
+            style={{
+              maxWidth: "100%",
+              height: "auto",
+              borderRadius: 8,
+            }}
+          />
+          <Typography
+            variant="caption"
+            display="block"
+            sx={{ mt: 1, color: "#777" }}
+          >
+            Scan to Venmo @Spenser-Wyatt by kickoff Saturday.
+          </Typography>
+        </Box>
           <Typography variant="h6" gutterBottom sx={{ mt: 2, fontWeight: "bold" }}>
             Important Deadlines:
           </Typography>
@@ -63,15 +96,20 @@ const Home = () => {
         </CardContent>
       </Card>
 
-      <Typography variant="body2" gutterBottom>
-        This contest is completely free. For a paid contest, visit{" "}
-        <Link href="https://playoff-showdown.com" target="_blank" rel="noopener" sx={{ fontWeight: "bold" }}>
-          playoff-showdown.com
-        </Link>
-      </Typography>
-
       <Box sx={{ mt: 4 }}>
-        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+      <Typography>
+        Follow us on{" "}
+          <Link
+            href="https://twitter.com/ShowdownUpdates"
+            underline="hover"
+            color="primary"
+            target="_blank"
+            rel="noopener"
+          >
+            Twitter
+          </Link>{" "}
+        </Typography>
+         <Typography variant="subtitle2" color="text.secondary" gutterBottom>
           Have questions? Contact us at{" "}
           <Link href="mailto:fantasyfootballshowdown@gmail.com">fantasyfootballshowdown@gmail.com</Link>.
         </Typography>
@@ -82,18 +120,6 @@ const Home = () => {
         <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1 }}>
           Developed by Ethan Katnic, Spenser Wyatt, and Angus Watters.
         </Typography>
-      </Box>
-
-      <Box sx={{ mt: 4, display: "flex", justifyContent: "center", gap: 2 }}>
-        <Button variant="contained" color="warning" onClick={() => navigate("/rules")}>
-          Rules
-        </Button>
-        <Button variant="contained" sx={{ bgcolor: "dodgerblue" }} onClick={() => navigate("/login")}>
-          Login
-        </Button>
-        <Button variant="contained" sx={{ bgcolor: "green" }} onClick={() => navigate("/signup")}>
-          Sign Up
-        </Button>
       </Box>
     </Paper>
   );

@@ -1,4 +1,7 @@
 import React from "react";
+import { Typography, Paper, Box, Button,  Link, Card, CardContent } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add"; // Plus icon
+import ListIcon from "@mui/icons-material/List"; // List icon
 import { useNavigate } from "react-router-dom";
 import { Typography, Paper, Box, Button, Card, CardContent, Link } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
@@ -35,6 +38,29 @@ export default function ProtectedHome() {
       >
         Welcome to the Playoff Challenge
       </Typography>
+      <Box sx={{ mt: 4, display: "flex", justifyContent: "center", gap: 2 }}>
+        <Button
+          variant="contained"
+          color="warning"
+          onClick={() => navigate("/rules")}>
+          Rules
+        </Button>
+        <Button
+          variant="contained"
+          color="info"
+          startIcon={<ListIcon />} 
+          onClick={() => navigate("/my-entries")}>
+          My Entries
+        </Button>
+        <Button
+          variant="contained"
+          sx={{ bgcolor: "green" }}
+          startIcon={<AddIcon />} 
+          onClick={() => navigate("/create-entry")}>
+          Create Entry
+        </Button>
+
+      </Box>
       <Card
         sx={{
           mt: 4,
@@ -51,7 +77,31 @@ export default function ProtectedHome() {
             or salary cap! Earn bonus points through the <strong>SCALED FLEX</strong> multiplier and watch your players
             compete in the playoffs.
           </Typography>
-          <Typography variant="h6" gutterBottom sx={{ mt: 2, fontWeight: "bold"}}>
+          <Box
+          sx={{
+            textAlign: "center",
+              mb: 3,
+            
+          }}
+        >
+          <img
+            src="https://raw.githubusercontent.com/ekatnic/FantasyChallenge/master/fantasy_football_app/static/images/venmo.PNG"
+            alt="Venmo QR Code"
+            style={{
+              maxWidth: "100%",
+              height: "auto",
+              borderRadius: 8,
+            }}
+          />
+          <Typography
+            variant="caption"
+            display="block"
+            sx={{ mt: 1, color: "#777" }}
+          >
+            Scan to Venmo @Spenser-Wyatt by kickoff Saturday.
+          </Typography>
+        </Box>
+          <Typography variant="h6" gutterBottom sx={{ mt: 2, fontWeight: "bold" }}>
             Important Deadlines:
           </Typography>
           <Typography variant="body1" gutterBottom>
@@ -64,15 +114,20 @@ export default function ProtectedHome() {
         </CardContent>
       </Card>
 
-      <Typography variant="body2" gutterBottom>
-        This contest is completely free. For a paid contest, visit{" "}
-        <Link href="https://playoff-showdown.com" target="_blank" rel="noopener" sx={{ fontWeight: "bold" }}>
-          playoff-showdown.com
-        </Link>
-      </Typography>
-
       <Box sx={{ mt: 4 }}>
-        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+      <Typography>
+        Follow us on{" "}
+          <Link
+            href="https://twitter.com/ShowdownUpdates"
+            underline="hover"
+            color="primary"
+            target="_blank"
+            rel="noopener"
+          >
+            Twitter
+          </Link>{" "}
+        </Typography>
+         <Typography variant="subtitle2" color="text.secondary" gutterBottom>
           Have questions? Contact us at{" "}
           <Link href="mailto:fantasyfootballshowdown@gmail.com">fantasyfootballshowdown@gmail.com</Link>.
         </Typography>
@@ -84,33 +139,6 @@ export default function ProtectedHome() {
           Developed by Ethan Katnic, Spenser Wyatt, and Angus Watters.
         </Typography>
       </Box>
-
-      <Box sx={{ mt: 4, display: "flex", justifyContent: "center", gap: 2 }}>
-        <Button
-          variant="contained"
-          color="warning"
-          onClick={() => navigate("/rules")}>
-          Rules
-        </Button>
-        <Button
-          variant="contained"
-          // color="info"
-          sx={{ bgcolor: "dodgerblue" }}
-          startIcon={<ListIcon />} // Add list icon
-          onClick={() => navigate("/my-entries")}>
-          My Entries
-        </Button>
-        <Button
-          variant="contained"
-          sx={{ bgcolor: "green" }}
-          startIcon={<AddIcon />} // Add plus icon
-          onClick={() => navigate("/create-entry")}>
-          Create Entry
-        </Button>
-
-      </Box>
     </Paper>
   );
 };
-
-

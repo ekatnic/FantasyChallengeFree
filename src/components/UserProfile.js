@@ -48,7 +48,7 @@ const UserProfile = ({ email }) => {
             flexDirection: 'column', 
             alignItems: 'center', 
             gap: 1,
-            minWidth: 100,
+            minWidth: 100, // Optional: Set a minimum width for aesthetic purposes
           }}
         >
           <Typography 
