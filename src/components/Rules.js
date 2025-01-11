@@ -16,20 +16,14 @@ import ScaledFlexRulesTable from "./ScaledFlexRulesTable";
 
 export default function Rules() {
   const payouts = [
-    { position: "1st", amount: "50% of pot" },
-    { position: "2nd", amount: "15% of pot" },
+    { position: "1st", amount: "55% of pot" },
+    { position: "2nd", amount: "20% of pot" },
     { position: "3rd", amount: "10% of pot" },
-    { position: "4th", amount: "8% of pot" },
+    { position: "4th", amount: "7.5% of pot" },
     { position: "5th", amount: "5% of pot" },
-    { position: "6th-10th", amount: "$20" },
-    { position: "Last Place*", amount: "$20" },
-  ];
-
-  const pricing = [
-    { entries: "1 entry", price: "$20" },
-    { entries: "3 entries", price: "$55" },
-    { entries: "5 entries", price: "$90" },
-    { entries: "10 entries", price: "$175" },
+    { position: "6th", amount: "$20" },
+    { position: "7th", amount: "$20" },
+    { position: "Last Place", amount: "$20" },
   ];
 
   // Full rules stored in a variable as an array of objects
@@ -66,7 +60,7 @@ export default function Rules() {
       rules: [
         "1 pt for each PAT made",
         "-1 pt for each PAT missed",
-        ".1 pt for each FG Made Yards (FGY)",
+        "3 pt for each FG Made",
         "-1 pt for each FG missed",
       ]
     }
@@ -99,7 +93,7 @@ export default function Rules() {
           </Typography>
           <Typography gutterBottom>
             Create a lineup of 12 player aiming to score the most points over the course of the playoffs. Once the playoffs start, you will not be able to change your lineup.
-            You can only select ONE PLAYER PER TEAM. So if you choose Lamar Jackson you cannot also have Derrick Henry in your lineup.
+            You can only select <strong>ONE PLAYER PER TEAM</strong>. So if you choose Lamar Jackson you cannot also have Derrick Henry in your lineup.
           </Typography>
           <Typography variant="h5" align="center" gutterBottom>
             <br/>
@@ -147,69 +141,6 @@ export default function Rules() {
               <br />
             </Box>
           ))}
-        </Paper>
-
-        {/* Pricing */}
-        <Paper
-          elevation={3}
-          sx={{
-            padding: 2,
-            flex: "1 1 calc(33% - 16px)",
-            minWidth: "280px",
-          }}
-        >
-          <Typography variant="h5" align="center" gutterBottom>
-            <strong>Entry Pricing:</strong>
-          </Typography>
-          <Typography variant="body2" sx={{ mt: 2 }}>
-            Max of 10 entries
-          </Typography>
-          <TableContainer component={Paper}>
-            <Table>
-              <TableBody>
-                {pricing.map((price, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{price.entries}</TableCell>
-                    <TableCell align="right">{price.price}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-
-          <br/>
-          <br/>
-          <Typography variant="h5" align="center" gutterBottom>
-            <strong>Payouts:</strong>
-          </Typography>
-          <Typography gutterBottom>
-            Payouts determined by number of entries. Expected payout will be something like...
-          </Typography>
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>
-                    <strong>Position</strong>
-                  </TableCell>
-                  <TableCell align="right">
-                    <strong>Amount</strong>
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {payouts.map((payout, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{payout.position}</TableCell>
-                    <TableCell align="right">{payout.amount}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <Typography variant="body2" sx={{ mt: 2 }}>
-            Around 1% of the pot will be used to pay web hosting fees.
-          </Typography>
         </Paper>
       </Box>
       <Box sx={{ marginTop: 4 }}>

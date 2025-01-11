@@ -175,6 +175,8 @@ staticfiles/
 
 # misc
 .DS_Store
+**/.DS_Store
+
 .env.local
 .env.development.local
 .env.test.local
@@ -213,3 +215,4 @@ data/All_Players_Test.csv
 data/
 data/*
 src/components/auth/CheckAuthButton.jsx
+myenv/*
