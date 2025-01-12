@@ -5,7 +5,8 @@ from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 from django.db.models import F, Sum
 from .models import Entry, Player, RosteredPlayers, WeeklyStats
-from .utils import get_entry_score_dict, get_entry_total_dict, get_all_entry_score_dicts, get_summarized_players
+from .utils import get_entry_score_dict, get_entry_total_dict, get_all_entry_score_dicts, get_summarized_players, \
+    calc_survivor_standings, filter_by_rostered_player, filter_by_scaled_flex
 from .serializers import WeeklyStatsSerializer, EntrySerializer, PlayerSerializer, RosteredPlayersSerializer
 from django.core.cache import cache
 
@@ -14,17 +15,16 @@ class EntryListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = EntrySerializer
 
     def get_permissions(self):
-        #Added to prevent normal users from creating entries after roster lock
+        # Added to prevent normal users from creating entries after roster lock
         if (
             self.request.method == 'PUT'
             or self.request.method == 'PATCH'
             or self.request.method == 'POST'
-            ):
+        ):
             permission_classes = [IsAdminUser]
         else:
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
-
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -33,9 +33,10 @@ class EntryListCreateAPIView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         queryset = Entry.objects.filter().prefetch_related('rosteredplayers_set')
-        year = self.request.query_params.get('year')
-        if year:
-            queryset = queryset.filter(year=year)
+        mine_only = self.request.query_params.get('mine_only')
+        if mine_only and mine_only.lower() == 'true':
+            queryset = queryset.filter(user=self.request.user)
+        
         return queryset
 
     def perform_create(self, serializer):
@@ -113,17 +114,19 @@ class StandingsAPIView(APIView):
         # Get query parameters
         rostered_player_id = request.query_params.get('rostered_player')
         scaled_flex_id = request.query_params.get('scaled_flex')
+        mine_only = request.query_params.get('mine_only')
 
         if rostered_player_id:
-            entry_ids = RosteredPlayers.objects.filter(player_id=rostered_player_id).values_list('entry_id', flat=True)
-            all_entries_list = [entry for entry in all_entries_list if entry['id'] in entry_ids]
+            all_entries_list = filter_by_rostered_player(all_entries_list, rostered_player_id)
 
         # Filter entries based on scaled_flex
         if scaled_flex_id:
-            entry_ids = RosteredPlayers.objects.filter(
-                player_id=scaled_flex_id, roster_position__in=["Scaled Flex1", "Scaled Flex2"]
-            ).values_list('entry_id', flat=True)
-            all_entries_list = [entry for entry in all_entries_list if entry['id'] in entry_ids]
+            all_entries_list = filter_by_scaled_flex(all_entries_list, scaled_flex_id)
+
+        for entry in all_entries_list:
+            entry['is_user_entry'] = entry['user_id'] == request.user.id
+        if mine_only and mine_only.lower() == 'true':
+            all_entries_list = [entry for entry in all_entries_list if entry['is_user_entry']]
 
         return Response({'entries': all_entries_list})
 
@@ -151,98 +154,24 @@ class SurvivorStandingsAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        entries = Entry.objects.prefetch_related(
-            'rosteredplayers_set__player',
-            'rosteredplayers_set__player__weeklystats_set'
-        ).all()
-
-        # TODO: Refactor into utils function. Move caching to cache all entries with all players,
-        # then filter based on rostered_player_id and scaled_flex_id and return response.
-
         rostered_player_id = request.query_params.get('rostered_player')
         scaled_flex_id = request.query_params.get('scaled_flex')
+        cache_key = "survivor_entry_standings"
 
-        cache_key = f"survivor_entry_standings-{rostered_player_id if rostered_player_id else 'NA'}-{scaled_flex_id if scaled_flex_id else 'NA'}"
-        cached_data = cache.get(cache_key)
-        if cached_data:
-            return Response(cached_data)
+        # get standings data from cache OR calculate and cache it
+        final_data = cache.get(cache_key)
+        if not final_data:
+            final_data = calc_survivor_standings()
+            cache.set(cache_key, final_data, 60 * 30)
 
+        # Filter entries based on rostered_player_id
         if rostered_player_id:
-            entry_ids = RosteredPlayers.objects.filter(player_id=rostered_player_id).values_list('entry_id', flat=True)
-            entries = [entry for entry in entries if entry.id in entry_ids]
+            final_data = filter_by_rostered_player(final_data, rostered_player_id)
 
         # Filter entries based on scaled_flex
         if scaled_flex_id:
-            entry_ids = RosteredPlayers.objects.filter(
-                player_id=scaled_flex_id, roster_position__in=["Scaled Flex1", "Scaled Flex2"]
-            ).values_list('entry_id', flat=True)
-            entries = [entry for entry in entries if entry.id in entry_ids]
+            final_data = filter_by_scaled_flex(final_data, scaled_flex_id)
 
-        standings_data = []
-        
-        for entry in entries:
-            # all rostered players for this entry
-            rostered_players = RosteredPlayers.objects.filter(
-                entry=entry
-            )
-
-            # calc total points for each player
-            players_data = []
-            for rp in rostered_players:
-                # total weekly points for this player
-                total_points = WeeklyStats.objects.filter(
-                    player=rp.player
-                ).aggregate(
-                    total_score=Sum('week_score')
-                )['total_score'] or 0.0
-
-                players_data.append({
-                    "rostered_position": rp.roster_position,
-                    "total_points": round(total_points, 2),
-                    "player_name": rp.player.name,
-                    "team": rp.player.team
-                })
-
-            # total entry points 
-            entry_total = sum(player["total_points"] for player in players_data)
-            
-            standings_data.append({
-                "entry": entry.name,
-                "entry_id": entry.id, 
-                "players": players_data,
-                "total_points": entry_total  
-            })
-
-        # sort by total points and add rank
-        standings_data = sorted(
-            standings_data,
-            key=lambda x: x["total_points"],
-            reverse=True
-        )
-
-         # add rank with handling of tied entries
-        final_data = []
-        prev_rank = 1
-        prev_points = None
-        current_rank = 1 
-
-        for rank, entry_data in enumerate(standings_data, 1):
-            # check if the total points same as the previous entry
-            # allows for ties in rankings
-            if prev_points is not None and entry_data["total_points"] == prev_points:
-                rank = prev_rank  
-            else:
-                rank = current_rank  
-            # print(f"Rank: {rank}\nEntry: {entry_data}")
-            final_data.append({
-                "id": entry_data["entry_id"], 
-                "name": entry_data["entry"],
-                "total": entry_data["total_points"],
-                "rank": rank,
-                "players": entry_data["players"]
-            })
-
-        
-        # # cache results for 30 minutes
-        cache.set(cache_key, {'entries': final_data}, 60 * 30)
+        for entry in final_data:
+            entry['is_user_entry'] = entry['user_id'] == request.user.id
         return Response({'entries': final_data})

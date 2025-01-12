@@ -1,16 +1,6 @@
 import axios from "axios";
 import { BASE_URL, playoffTeams } from "../constants";
 
-export const getEntries = async () => {
-  try {
-    const response = await axios.get(`${BASE_URL}/api/entries/?year=2025`);
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching entries:", error);
-    throw error;
-  }
-};
-
 export const getEntry = async (id) => {
   try {
     const response = await axios.get(`${BASE_URL}/api/entries/${id}/`);
