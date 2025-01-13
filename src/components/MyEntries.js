@@ -108,13 +108,7 @@ const MyEntries = () => {
                   <TableCell>{entry.SB}</TableCell>
                   <TableCell>{entry.total}</TableCell>
                   <TableCell>
-                    {/* <IconButton onClick={() => handleEdit(entry.id)}>
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton onClick={() => handleClickOpen(entry)}>
-                      <DeleteIcon />
-                    </IconButton> */}
-                     <IconButton onClick={() => handleView(entry.id)}>
+                    <IconButton onClick={() => handleView(entry.id)}>
                       <Pageview />
                     </IconButton>
                   </TableCell>

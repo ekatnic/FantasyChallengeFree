@@ -26,6 +26,13 @@ export default function Rules() {
     { position: "Last Place", amount: "$20" },
   ];
 
+  const pricing = [
+    { entries: "1 entry", price: "$20" },
+    { entries: "3 entries", price: "$55" },
+    { entries: "5 entries", price: "$90" },
+    { entries: "10 entries", price: "$175" },
+  ];
+
   // Full rules stored in a variable as an array of objects
   const fullRules = [
     {
