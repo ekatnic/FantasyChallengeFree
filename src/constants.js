@@ -68,15 +68,15 @@ export const playoffTeams = [
 // NOTE: Update this to update the SurvivorStandings component to show eliminated players as red in table
 export const isPlayoffTeamAlive = {
   LAR: true,
-  TB: true,
+  TB: false,
   DET: true,
   MIN: true,
-  GB: true,
+  GB: false,
   PHI: true,
   WAS: true,
   KC: true,
   LAC: false,
-  DEN: true,
+  DEN: false,
   HOU: true,
   BAL: true,
   PIT: false,

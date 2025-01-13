@@ -1,19 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { DataGrid } from "@mui/x-data-grid";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { makeStyles } from "@mui/styles";
-import {
-  Paper,
-  Typography,
-  Box,
-  Button
-} from '@mui/material';
+import { Paper, Typography, Box, Button, Tooltip } from '@mui/material';
 import ResetIcon from "@mui/icons-material/Restore";
-import { getSurivorStandings } from "../services/api";
 import { rosterPositions, isPlayoffTeamAlive } from "../constants";
+import PlayerWeeklyStats from "./PlayerWeeklyStats";
 
 const useStyles = makeStyles({
   dataGrid: {
+    // TODO: mobile friendly data grid for root container
+    "& .MuiDataGrid-root": {
+      minWidth: "320px", // Set the minimum width to 100%
+    },
+
     "& .MuiDataGrid-cell": {
       fontSize: "1rem", // Adjust the font size for the cells
     },
@@ -46,40 +46,25 @@ const useStyles = makeStyles({
   },
 });
 
-export default function SurvivorStandings() {
+export default function SurvivorStandings({ standings }) {
   const classes = useStyles();
-  
-  const [standings, setStandings] = useState([]);
-  const [muiTableKey, setMuiTableKey] = useState(1); // updating key will force reset/rerender of filter on DataGrid 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
+  const [muiTableKey, setMuiTableKey] = useState(1);
   const navigate = useNavigate();
-  const location = useLocation();
+  const [selectedPlayerId, setSelectedPlayerId] = useState(null);
+  const [statsDialogOpen, setStatsDialogOpen] = useState(false);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const queryParams = new URLSearchParams(location.search);
-        const rosteredPlayer = queryParams.get('rostered_player');
-        const scaledFlex = queryParams.get('scaled_flex');
-        const response = await getSurivorStandings({ rostered_player: rosteredPlayer, scaled_flex: scaledFlex });
-        setStandings(response.entries);
-        setLoading(false);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const resetFilters = () => {
+    setMuiTableKey(muiTableKey + 1);
+  };
 
-    fetchData();
-  }, [location.search]);
+  const handlePlayerClick = (playerId) => {
+    setSelectedPlayerId(playerId);
+    setStatsDialogOpen(true);
+  };
 
-  // Increment key on DataGrid component to force a rerender 
-  // https://stackoverflow.com/questions/72810599/how-to-clear-all-applied-filters-in-mui-react-datagrid
-  const resetFilters = async () => {
-    setMuiTableKey(muiTableKey + 1); 
+  const handleDialogClose = () => {
+    setSelectedPlayerId(null);
+    setStatsDialogOpen(false);
   };
 
   const getPlayerCell = (players, position) => {
@@ -107,18 +92,26 @@ export default function SurvivorStandings() {
           boxSizing: "border-box",
         }}
       >
-        <Typography
-          variant="body2"
-          noWrap
-          sx={{
-            color: !isTeamAlive ? "white" : "text.primary",
-            fontSize: "0.75rem",
-            lineHeight: 1.1,
-            textOverflow: "ellipsis",
-          }}
-        >
-          {shortName}
-        </Typography>
+        <Tooltip title="Click to view player stats">
+          <Typography
+            variant="body2"
+            noWrap
+            sx={{
+              color: !isTeamAlive ? "white" : "text.primary",
+              fontSize: "0.75rem",
+              lineHeight: 1.1,
+              textOverflow: "ellipsis",
+              cursor: "pointer",
+              textDecoration: "none", // No underline by default
+              "&:hover": {
+                textDecoration: "underline", // Underline on hover
+              },
+            }}
+            onClick={() => handlePlayerClick(player.player_id)} // Add onClick handler
+          >
+            {shortName}
+          </Typography>
+        </Tooltip>
         <Typography
           variant="caption"
           noWrap
@@ -134,22 +127,22 @@ export default function SurvivorStandings() {
       </Box>
     );
   };
-  
-  // generate the rosterPosition column definitions
   const positionColumns = rosterPositions.map((position) => ({
     field: position,
     headerName: position,
-    flex: 1, 
-    minWidth: 100, 
+    flex: 1,
+    // minWidth: "100%",
+    minWidth : 85,
+    sortable : false,
     renderCell: (params) => getPlayerCell(params.row.players, position),
   }));
-  
+
   const columns = [
     { field: "rank", headerName: "Rank", flex: 0.5, minWidth: 80 },
     {
       field: "name",
       headerName: "Entry Name",
-      flex: 1.5, 
+      flex: 1.5,
       minWidth: 150,
       renderCell: (params) => (
         <span
@@ -160,16 +153,12 @@ export default function SurvivorStandings() {
         </span>
       ),
     },
-    { field: "total", headerName: "Total", flex: 1, minWidth: 80},
-    ...positionColumns, // Spread the position columns here, defined above and ordered by rosterPositions
+    { field: "total", headerName: "Total", flex: 1, minWidth: 80 },
+    ...positionColumns,
   ];
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error.message}</div>;
-
   return (
-    <Paper sx={{ p: 4, mt: 4, position: "relative"}}>
-      {/* Reset Button */}
+    <Paper sx={{ p: 4, mt: 4, position: "relative" }}>
       <Box className={classes.resetButtonContainer}>
         <Button
           onClick={resetFilters}
@@ -180,7 +169,7 @@ export default function SurvivorStandings() {
         </Button>
       </Box>
       <DataGrid
-        key={muiTableKey} // Use the muiTableKey to trigger a re-render
+        key={muiTableKey}
         rows={standings}
         columns={columns}
         pageSize={10}
@@ -191,8 +180,17 @@ export default function SurvivorStandings() {
           },
         }}
         getRowClassName={(params) =>
-          params.row.is_user_entry ? classes.userRow : (params.indexRelativeToCurrentPage % 2 === 0 ? classes.evenRow : classes.oddRow)
+          params.row.is_user_entry
+            ? classes.userRow
+            : params.indexRelativeToCurrentPage % 2 === 0
+            ? classes.evenRow
+            : classes.oddRow
         }
+      />
+      <PlayerWeeklyStats
+        playerId={selectedPlayerId}
+        open={statsDialogOpen}
+        onClose={handleDialogClose}
       />
     </Paper>
   );
